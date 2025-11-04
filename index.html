@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Timetable Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-900 text-slate-100 font-sans p-6">
+    <div class="max-w-7xl mx-auto space-y-8">
+      <!-- HEADER -->
+      <header class="text-center">
+        <h1 class="text-4xl font-semibold mb-2 tracking-tight">
+          Timetable Builder — Tailwind Version
+        </h1>
+        <p class="text-slate-400 text-sm max-w-2xl mx-auto">
+          Manage <strong>Teachers</strong>, their <strong>Availability</strong>,
+          and build your <strong>Class Timetable</strong> dynamically.
+        </p>
+      </header>
+
+      <!-- DATA SECTION -->
+      <section class="bg-slate-800 rounded-xl shadow-lg p-6 space-y-6">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h2 class="text-2xl font-semibold">DATA — Teachers & Subjects</h2>
+            <p class="text-xs text-slate-400">
+              Add teachers and their subjects
+            </p>
+          </div>
+        </div>
+
+        <!-- TEACHER FORM -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+          <input
+            id="teacher-name"
+            placeholder="Teacher name"
+            class="w-full p-2 bg-slate-900 rounded border border-slate-700 focus:border-slate-500 focus:outline-none"
+          />
+          <input
+            id="teacher-subject"
+            placeholder="Subject"
+            class="w-full p-2 bg-slate-900 rounded border border-slate-700 focus:border-slate-500 focus:outline-none"
+          />
+          <button
+            id="add-teacher"
+            type="button"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-full text-sm px-5 py-2 transition w-full md:w-auto"
+          >
+            Add Teacher
+          </button>
+        </div>
+
+        <!-- TEACHER LIST -->
+        <div
+          id="teacher-list"
+          class="max-h-64 overflow-auto space-y-2 text-sm p-2 rounded border border-slate-700 bg-slate-900/40 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800"
+        ></div>
+
+        <!-- CLASES AND TIMETABLE SETTINGS -->
+        <div class="border-t border-slate-700 pt-5">
+          <h2 class="text-xl font-semibold mb-2">Class & time Settings</h2>
+          <p class="text-xs text-slate-400 mb-3">
+            change class timings and add breaks as needed.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end mb-4">
+            <input
+              id="period-time"
+              type="text"
+              placeholder="Enter period time (e.g. 9:00 AM - 9:45 AM)"
+              class="w-full p-2 bg-slate-900 rounded border border-slate-700 focus:border-slate-500 focus:outline-none"
+            />
+            <button
+              id="add-break"
+              class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-4 py-2 rounded-full w-full md:w-auto"
+            >
+              Add Break
+            </button>
+
+            <input
+              id="number-of-classes"
+              type="text"
+              placeholder="enter total number of classes"
+              class="w-full p-2 bg-slate-900 rounded border border-slate-700 focus:border-slate-500 focus:outline-none"
+            />
+            <button
+              class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-4 py-2 rounded-full w-full md:w-auto"
+            >
+              update classes
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+            <input
+              id="lunch-break"
+              type="text"
+              placeholder="Enter number of periods before lunch"
+              class="w-full p-2 bg-slate-900 rounded border border-slate-700 focus:border-slate-500 focus:outline-none"
+            />
+
+            <button
+              id="add-break"
+              class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-4 py-2 rounded-full w-full md:w-auto"
+            >
+              Update Break
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TIMETABLE SECTION -->
+      <section class="bg-slate-800 rounded-xl shadow-lg p-6">
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <div>
+            <h3 class="font-semibold text-2xl">Timetable</h3>
+            <p class="text-xs text-slate-400">
+              Click any cell to edit or use the controls above.
+            </p>
+          </div>
+          <div class="flex gap-2 flex-wrap">
+            <button
+              id="reset-timetable"
+              class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-lg transition"
+            >
+              Reset Timetable
+            </button>
+            <button
+              id="download-btn"
+              class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg transition"
+            >
+              Download PDF
+            </button>
+          </div>
+        </div>
+
+        <div
+          id="timetable-grid"
+          class="overflow-auto border border-slate-700 rounded-md bg-slate-900/40 p-3"
+        ></div>
+
+        <footer class="mt-4 text-xs text-slate-500 text-center">
+          Data persists locally. Use <strong>Import CSV</strong> to load
+          teachers (format: name,subject).
+        </footer>
+      </section>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
