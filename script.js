@@ -1,5 +1,5 @@
 class TimetableBuilder {
-    constructor(p = 8, c = 12, t = [{ name: "Test Teacher", subject: "English" }], b) {
+    constructor(p = 8, c = 12, t, b) {
         this.periods = p;
         this.classes = c;
         this.teachers = [...t];
@@ -7,11 +7,11 @@ class TimetableBuilder {
         this.availability = {};
         this.timetable = {};
         this.breakAfter = b;
-        this.updateLocalStorage();
         this.init();
     }
     updateLocalStorage() {
         localStorage.setItem("tt_teachers", JSON.stringify(this.teachers));
+        localStorage.setItem("tt_table", JSON.stringify(this.timetable));
     }
     init() {
         const storedTeachers = localStorage.getItem("tt_teachers");
@@ -27,6 +27,7 @@ class TimetableBuilder {
         this.setupEventListeners();
         this.renderTeachers();
         this.renderRecordTable();
+        this.updateLocalStorage();
     }
     renderTeachers() {
         const el = document.getElementById("teacher-list");
@@ -61,6 +62,7 @@ class TimetableBuilder {
             this.teachers.push({ name, subject });
             this.teachers.sort((a, b) => a.name.localeCompare(b.name));
             this.renderTeachers();
+            this.renderRecordTable();
             this.updateLocalStorage();
         }
         else {
@@ -89,7 +91,7 @@ class TimetableBuilder {
             const [col, row] = key.split("_");
             const blocked = new Set([
                 ...(usedInRow[row] || []),
-                ...(usedInCol[col] || []),
+                // ...(usedInCol[col] || []), // this is blocked
             ]);
             select.querySelectorAll("option").forEach((opt) => {
                 if (opt.value === "")
@@ -98,6 +100,7 @@ class TimetableBuilder {
                 opt.style.color = opt.disabled ? "#888" : "";
             });
         });
+        this.updateLocalStorage();
     }
     renderRecordTable() {
         const table = document.getElementById("timetable-grid");
@@ -107,7 +110,7 @@ class TimetableBuilder {
         const thead = document.createElement("thead");
         const headRow = document.createElement("tr");
         const firstTh = document.createElement("th");
-        firstTh.className = "text-left p-2";
+        firstTh.className = "text-center p-2";
         firstTh.textContent = "Class / Period";
         headRow.appendChild(firstTh);
         for (let p = 1; p <= this.periods; p++) {
@@ -130,7 +133,7 @@ class TimetableBuilder {
             const tr = document.createElement("tr");
             const classTh = document.createElement("th");
             classTh.className = "p-2 text-center";
-            classTh.textContent = `Class ${c}`;
+            classTh.textContent = `${c}`;
             tr.appendChild(classTh);
             for (let p = 1; p <= this.periods; p++) {
                 const key = `C${c}_P${p}`;
@@ -144,7 +147,7 @@ class TimetableBuilder {
                 select.title = "";
                 const defaultOpt = document.createElement("option");
                 defaultOpt.value = "";
-                defaultOpt.textContent = "";
+                defaultOpt.textContent = "- Select -";
                 select.appendChild(defaultOpt);
                 this.teachers.forEach((t) => {
                     const opt = document.createElement("option");
@@ -168,7 +171,6 @@ class TimetableBuilder {
                         delete this.timetable[key];
                     }
                     this.updateDropdowns();
-                    localStorage.setItem("tt_table", JSON.stringify(this.timetable));
                 });
                 td.appendChild(select);
                 tr.appendChild(td);
@@ -192,7 +194,16 @@ class TimetableBuilder {
             return;
         const numberOfClasses = classInput.value ? parseInt(classInput.value) : 8;
         this.classes = numberOfClasses;
-        this.init();
+        this.renderRecordTable();
+    }
+    updatePeriods() {
+        const periodInput = document.getElementById("number-of-periods");
+        if (!periodInput)
+            return;
+        const numberOfPeriods = periodInput.value ? parseInt(periodInput.value) : 8;
+        this.periods = numberOfPeriods;
+        this.renderRecordTable();
+        this.updateLocalStorage();
     }
     setupEventListeners() {
         //add teacher button
@@ -224,66 +235,124 @@ class TimetableBuilder {
         classBtn.onchange = () => {
             this.updateClasses();
         };
+        //update periods button
+        const periodBtn = document.getElementById("number-of-periods");
+        if (!periodBtn)
+            return;
+        periodBtn.onchange = () => {
+            this.updatePeriods();
+        };
         //download button
         const downloadBtn = document.getElementById("download-btn");
         if (!downloadBtn)
             return;
         downloadBtn.onclick = () => {
             const printable = document.getElementById("timetable-grid");
-            // Optional: open print view with only timetable visible
+            if (!printable)
+                return;
+            // --- Deep clone the table (structure only) ---
+            const clone = printable.cloneNode(true);
+            // --- Copy selected values from original selects to cloned ones ---
+            const originalSelects = printable.querySelectorAll(".teacher-select");
+            const clonedSelects = clone.querySelectorAll(".teacher-select");
+            originalSelects.forEach((orig, i) => {
+                const cloneSelect = clonedSelects[i];
+                const origSelect = orig;
+                cloneSelect.value = origSelect.value; // copy selected value
+            });
+            // --- Replace cloned <select> elements with plain text spans ---
+            clone.querySelectorAll(".teacher-select").forEach((el) => {
+                var _a;
+                const select = el;
+                const selectedText = ((_a = select.options[select.selectedIndex]) === null || _a === void 0 ? void 0 : _a.textContent) || "";
+                const span = document.createElement("span");
+                span.textContent = selectedText;
+                span.className = "teacher-print-value";
+                select.replaceWith(span);
+            });
+            // --- Open new print window ----
             const printWindow = window.open("", "_blank");
-            if (!printWindow || !printable)
+            if (!printWindow)
                 return;
             printWindow.document.write(`
-    <html>
-      <head>
-        <title>School Timetable</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; background: #fff; color: #000; }
-          table { border-collapse: collapse; width: 100%; }
-          th, td { border: 1px solid #333; padding: 8px; text-align: center; }
-          th { background-color: #f4f4f4; }
-        </style>
-      </head>
-      <body>
-        <h2>School Timetable</h2>
-        ${printable.outerHTML}
-      </body>
-    </html>
-  `);
+        <html>
+          <head>
+            <title>School Timetable</title>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                padding: 20px;
+                background: #fff;
+                color: #000;
+              }
+              table {
+                border-collapse: collapse;
+                width: 100%;
+              }
+              th, td {
+                border: 1px solid #333;
+                padding: 8px;
+                text-align: center;
+              }
+              th {
+                background-color: #f4f4f4;
+              }
+              .teacher-print-value {
+                display: inline-block;
+                min-width: 100px;
+              }
+            </style>
+          </head>
+          <body>
+            <h2>School Timetable</h2>
+            ${clone.outerHTML}
+          </body>
+        </html>
+      `);
             printWindow.document.close();
-            printWindow.print();
+            // --- Wait for render before print ---
+            printWindow.onload = () => {
+                printWindow.focus();
+                printWindow.print();
+            };
         };
     }
 }
 // Initialize on load
 window.onload = () => {
-    const classInput = document.getElementById("number-of-classes");
-    if (!classInput)
-        return;
-    if (!classInput.value) {
-        classInput.value = "8";
+    try {
+        const classInput = document.getElementById("number-of-classes");
+        if (!classInput)
+            return;
+        if (!classInput.value) {
+            classInput.value = "8";
+        }
+        console.log(classInput.value);
+        const numberOfClasses = parseInt(classInput.value, 10);
+        const lunchBreak = document.getElementById("lunch-break");
+        if (!lunchBreak)
+            return;
+        if (!lunchBreak.value) {
+            lunchBreak.value = "4";
+        }
+        let teachers = [];
+        const data = localStorage.getItem("tt_teachers");
+        const parsed = data ? JSON.parse(data) : [];
+        teachers =
+            Array.isArray(parsed) && parsed.length > 0
+                ? parsed
+                : [{ name: "Test Teacher", subject: "English" }];
+        const lunchBreakTime = parseInt(lunchBreak.value, 10);
+        const numberOfPeriods = document.getElementById("number-of-periods");
+        if (!numberOfPeriods)
+            return;
+        if (!numberOfPeriods.value) {
+            numberOfPeriods.value = "8";
+        }
+        const periods = parseInt(numberOfPeriods.value, 10);
+        new TimetableBuilder(periods, numberOfClasses, teachers, lunchBreakTime);
     }
-    console.log(classInput.value);
-    const numberOfClasses = parseInt(classInput.value, 10);
-    const lunchBreak = document.getElementById("lunch-break");
-    if (!lunchBreak)
-        return;
-    if (!lunchBreak.value) {
-        lunchBreak.value = "4";
+    catch (error) {
+        console.warn("Invalida data in localStorage. Please clear the local storage and reload the page.", error);
     }
-    const lunchBreakTime = parseInt(lunchBreak.value, 10);
-    const PERIODS = 8;
-    const sampleTeachers = [
-        { name: "ASHIM BISWAS", subject: "English" },
-        { name: "MALAY SAHA", subject: "Maths" },
-        { name: "SARBANANDA MARIK", subject: "Science" },
-        { name: "Deepak", subject: "Social Science" },
-        { name: "Bhupender", subject: "Maths" },
-        { name: "Harish", subject: "Sanskrit" },
-        { name: "Manoj", subject: "Computer" },
-        { name: "Vikash", subject: "Sports" },
-        { name: "Sonu", subject: "Vacant" },
-    ];
-    new TimetableBuilder(PERIODS, numberOfClasses, sampleTeachers, lunchBreakTime);
 };
