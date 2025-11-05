@@ -267,6 +267,23 @@ class TimetableBuilder {
     this.updateLocalStorage();
   }
 
+  updateBreakTime(): void {
+    const breakInput = document.getElementById(
+      "lunch-break"
+    ) as HTMLInputElement | null;
+
+    if (!breakInput) return;
+
+    const lunchBreakTime = breakInput.value
+      ? parseInt(breakInput.value, 10)
+      : 4;
+
+    this.breakAfter = lunchBreakTime;
+    console.log(lunchBreakTime)
+    this.renderRecordTable();
+    this.updateLocalStorage();
+  }
+
   setupEventListeners(): void {
     //add teacher button
     const btn = document.getElementById(
@@ -310,6 +327,15 @@ class TimetableBuilder {
       this.updateClasses();
     };
 
+    //update break time button
+    const breakBtn = document.getElementById(
+      "add-break"
+    ) as HTMLInputElement | null;
+    if (!breakBtn) return;
+
+    breakBtn.onclick = () => {
+      this.updateBreakTime();
+    };
     //update periods button
     const periodBtn = document.getElementById(
       "number-of-periods"
