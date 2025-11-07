@@ -193,7 +193,7 @@ class TimetableBuilder {
 
         this.teachers.forEach((t) => {
           const opt = document.createElement("option");
-          opt.value = `${t.name} (${t.subject})`;
+          opt.value = `${t.name}_${t.subject}`;
           opt.textContent = `${t.name} (${t.subject})`;
           select.appendChild(opt);
         });
