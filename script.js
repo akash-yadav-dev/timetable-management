@@ -151,7 +151,7 @@ class TimetableBuilder {
                 select.appendChild(defaultOpt);
                 this.teachers.forEach((t) => {
                     const opt = document.createElement("option");
-                    opt.value = t.name;
+                    opt.value = `${t.name} (${t.subject})`;
                     opt.textContent = `${t.name} (${t.subject})`;
                     select.appendChild(opt);
                 });
@@ -160,9 +160,8 @@ class TimetableBuilder {
                     select.title = this.timetable[key].subject;
                 }
                 select.addEventListener("change", () => {
-                    var _a;
-                    const teacher = select.value;
-                    const subject = ((_a = this.teachers.find((t) => t.name === teacher)) === null || _a === void 0 ? void 0 : _a.subject) || "";
+                    const selectedTeacher = select.value;
+                    const [teacher, subject] = selectedTeacher.split("_");
                     select.title = subject;
                     if (teacher) {
                         this.timetable[key] = { teacher, subject };
@@ -213,7 +212,6 @@ class TimetableBuilder {
             ? parseInt(breakInput.value, 10)
             : 4;
         this.breakAfter = lunchBreakTime;
-        console.log(lunchBreakTime);
         this.renderRecordTable();
         this.updateLocalStorage();
     }
@@ -346,7 +344,6 @@ window.onload = () => {
         if (!classInput.value) {
             classInput.value = "8";
         }
-        console.log(classInput.value);
         const numberOfClasses = parseInt(classInput.value, 10);
         const lunchBreak = document.getElementById("lunch-break");
         if (!lunchBreak)

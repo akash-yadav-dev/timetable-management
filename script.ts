@@ -193,7 +193,7 @@ class TimetableBuilder {
 
         this.teachers.forEach((t) => {
           const opt = document.createElement("option");
-          opt.value = t.name;
+          opt.value = `${t.name} (${t.subject})`;
           opt.textContent = `${t.name} (${t.subject})`;
           select.appendChild(opt);
         });
@@ -204,9 +204,8 @@ class TimetableBuilder {
         }
 
         select.addEventListener("change", () => {
-          const teacher = select.value;
-          const subject =
-            this.teachers.find((t) => t.name === teacher)?.subject || "";
+          const selectedTeacher = select.value;
+          const [teacher, subject] = selectedTeacher.split("_");
 
           select.title = subject;
 
@@ -279,7 +278,6 @@ class TimetableBuilder {
       : 4;
 
     this.breakAfter = lunchBreakTime;
-    console.log(lunchBreakTime)
     this.renderRecordTable();
     this.updateLocalStorage();
   }
@@ -443,7 +441,6 @@ window.onload = () => {
       classInput.value = "8";
     }
 
-    console.log(classInput.value);
 
     const numberOfClasses = parseInt(classInput.value, 10);
     const lunchBreak = document.getElementById(
