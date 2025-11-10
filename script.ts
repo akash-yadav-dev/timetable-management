@@ -171,7 +171,15 @@ class TimetableBuilder {
 
       const classTh = document.createElement("th");
       classTh.className = "p-2 text-center";
-      classTh.textContent = `${c}`;
+
+      const inputEl = document.createElement("input");
+      inputEl.type = "text";
+      inputEl.className = "w-full bg-slate-900 text-white rounded p-1 border border-slate-700 class-input";
+      inputEl.value = `${c}`;
+      inputEl.id = `class-input-${c}`;
+
+      classTh.appendChild(inputEl);
+      
       tr.appendChild(classTh);
 
       for (let p = 1; p <= this.periods; p++) {
@@ -199,7 +207,7 @@ class TimetableBuilder {
         });
 
         if (this.timetable[key]) {
-          select.value = this.timetable[key].teacher;
+          select.value = `${this.timetable[key].teacher}_${this.timetable[key].subject}`;
           select.title = this.timetable[key].subject;
         }
 
@@ -361,6 +369,16 @@ class TimetableBuilder {
       const originalSelects = printable.querySelectorAll(".teacher-select");
       const clonedSelects = clone.querySelectorAll(".teacher-select");
 
+      // --- Copy selected values from original inputs to cloned ones ---
+      const originalInputs = printable.querySelectorAll(".class-input");
+      const clonedInputs = clone.querySelectorAll(".class-input");
+
+      originalInputs.forEach((orig, i) => {
+        const cloneInput = clonedInputs[i] as HTMLInputElement;
+        const origInput = orig as HTMLInputElement;
+        cloneInput.value = origInput.value; // copy selected value
+      });
+
       originalSelects.forEach((orig, i) => {
         const cloneSelect = clonedSelects[i] as HTMLSelectElement;
         const origSelect = orig as HTMLSelectElement;
@@ -376,6 +394,15 @@ class TimetableBuilder {
         span.textContent = selectedText;
         span.className = "teacher-print-value";
         select.replaceWith(span);
+      });
+
+      clone.querySelectorAll(".class-input").forEach((el) => {
+        const input = el as HTMLInputElement;
+        const selectedText = input.value || "";
+        const span = document.createElement("span");
+        span.textContent = selectedText;
+        span.className = "class-print-value";
+        input.replaceWith(span);
       });
 
       // --- Open new print window ----
